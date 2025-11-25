@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pac-Mono Laberinto 🐒</title>
+<style>
+    body {
+        background: #000;
+        color: #fff;
+        text-align: center;
+        font-family: Arial;
+    }
+
+    h1 { margin: 10px 0; }
+
+    #game {
+        width: 500px;
+        height: 500px;
+        background: #111;
+        margin: 20px auto;
+        position: relative;
+        border: 3px solid #333;
+    }
+
+    #player {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        font-size: 28px;
+        text-align: center;
+        line-height: 30px;
+        z-index: 10;
+    }
+
+    .wall {
+        position: absolute;
+        background: #2b3cff;
+    }
+
+    .fruit {
+        position: absolute;
+        font-size: 22px;
+    }
+
+    #message {
+        display: none;
+        margin-top: 20px;
+        font-size: 2em;
+        color: #ffdf6b;
+    }
+</style>
+</head>
+<body>
+
+<h1>Pac-Mono 🐒 Laberinto</h1>
+<div id="score">Frutas atrapadas: 0</div>
+
+<div id="game">
+    <div id="player">🐒</div>
+</div>
+
+<div id="message">Felicidades mi vida, te convertiste en un mono 🐒💛</div>
+
+<script>
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const message = document.getElementById("message");
+const scoreDisplay = document.getElementById("score");
+
+let x = 10, y = 10;
+const speed = 10;
+
+let score = 0;
+const goal = 5;
+
+const walls = [
+    {x:0,   y:80,  w:400, h:20},
+    {x:100, y:160, w:20,  h:200},
+    {x:200, y:60,  w:20,  h:250},
+    {x:300, y:300, w:150, h:20},
+    {x:50,  y:350, w:200, h:20}
+];
+
+function createWalls() {
+    walls.forEach(w => {
+        const wall = document.createElement("div");
+        wall.classList.add("wall");
+        wall.style.left = w.x + "px";
+        wall.style.top = w.y + "px";
+        wall.style.width = w.w + "px";
+        wall.style.height = w.h + "px";
+        game.appendChild(wall);
+    });
+}
+createWalls();
+
+function rectsCollide(ax, ay, aw, ah, bx, by, bw, bh) {
+    return ax < bx + bw &&
+           ax + aw > bx &&
+           ay < by + bh &&
+           ay + ah > by;
+}
+
+function canMove(newX, newY) {
+    const playerRect = {x:newX, y:newY, w:30, h:30};
+    return !walls.some(w =>
+        rectsCollide(playerRect.x, playerRect.y, playerRect.w, playerRect.h, w.x, w.y, w.w, w.h)
+    );
+}
+
+function spawnFruit() {
+    if (score >= goal) return;
+
+    const fruit = document.createElement("div");
+    fruit.classList.add("fruit");
+    fruit.textContent = "🍌";
+
+    let fx, fy;
+    do {
+        fx = Math.random() * 470;
+        fy = Math.random() * 470;
+    } while (!canMove(fx, fy));
+
+    fruit.style.left = fx + "px";
+    fruit.style.top = fy + "px";
+
+    game.appendChild(fruit);
+}
+
+function checkCollision() {
+    const fruits = document.querySelectorAll(".fruit");
+    fruits.forEach(fruit => {
+        const fx = fruit.offsetLeft;
+        const fy = fruit.offsetTop;
+
+        if (Math.abs(x - fx) < 25 && Math.abs(y - fy) < 25) {
+            fruit.remove();
+            score++;
+            scoreDisplay.textContent = "Frutas atrapadas: " + score;
+
+            if (score >= goal) {
+                message.style.display = "block";
+            }
+        }
+    });
+}
+
+document.addEventListener("keydown", (e) => {
+    if (score >= goal) return;
+
+    let newX = x, newY = y;
+
+    if (e.key === "ArrowUp") newY -= speed;
+    if (e.key === "ArrowDown") newY += speed;
+    if (e.key === "ArrowLeft") newX -= speed;
+    if (e.key === "ArrowRight") newX += speed;
+
+    if (canMove(newX, newY)) {
+        x = newX;
+        y = newY;
+        player.style.left = x + "px";
+        player.style.top = y + "px";
+        checkCollision();
+    }
+});
+
+setInterval(spawnFruit, 1000);
+</script>
+
+</body>
+</html>
