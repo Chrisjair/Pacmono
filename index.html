@@ -9,6 +9,8 @@
         color: #fff;
         text-align: center;
         font-family: Arial;
+        margin: 0;
+        padding-bottom: 120px; /* espacio para controles */
     }
 
     h1 { margin: 10px 0; }
@@ -42,6 +44,36 @@
         font-size: 22px;
     }
 
+    #controls {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn {
+        width: 60px;
+        height: 60px;
+        background: #444;
+        color: white;
+        border-radius: 10px;
+        font-size: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        user-select: none;
+        active: scale(0.9);
+    }
+
     #message {
         display: none;
         margin-top: 20px;
@@ -61,6 +93,18 @@
 
 <div id="message">Felicidades mi vida, te convertiste en un mono 🐒💛</div>
 
+<!-- CONTROLES PARA CELULAR -->
+<div id="controls">
+    <div class="row">
+        <div class="btn" id="up">⬆️</div>
+    </div>
+    <div class="row">
+        <div class="btn" id="left">⬅️</div>
+        <div class="btn" id="down">⬇️</div>
+        <div class="btn" id="right">➡️</div>
+    </div>
+</div>
+
 <script>
 const game = document.getElementById("game");
 const player = document.getElementById("player");
@@ -69,7 +113,6 @@ const scoreDisplay = document.getElementById("score");
 
 let x = 10, y = 10;
 const speed = 10;
-
 let score = 0;
 const goal = 5;
 
@@ -102,9 +145,9 @@ function rectsCollide(ax, ay, aw, ah, bx, by, bw, bh) {
 }
 
 function canMove(newX, newY) {
-    const playerRect = {x:newX, y:newY, w:30, h:30};
+    const p = {x:newX, y:newY, w:30, h:30};
     return !walls.some(w =>
-        rectsCollide(playerRect.x, playerRect.y, playerRect.w, playerRect.h, w.x, w.y, w.w, w.h)
+        rectsCollide(p.x, p.y, p.w, p.h, w.x, w.y, w.w, w.h)
     );
 }
 
@@ -129,11 +172,11 @@ function spawnFruit() {
 
 function checkCollision() {
     const fruits = document.querySelectorAll(".fruit");
-    fruits.forEach(fruit => {
-        const fx = fruit.offsetLeft;
-        const fy = fruit.offsetTop;
 
-        if (Math.abs(x - fx) < 25 && Math.abs(y - fy) < 25) {
+    fruits.forEach(fruit => {
+        if (Math.abs(x - fruit.offsetLeft) < 25 &&
+            Math.abs(y - fruit.offsetTop) < 25) {
+
             fruit.remove();
             score++;
             scoreDisplay.textContent = "Frutas atrapadas: " + score;
@@ -145,15 +188,13 @@ function checkCollision() {
     });
 }
 
-document.addEventListener("keydown", (e) => {
-    if (score >= goal) return;
-
+function move(dir) {
     let newX = x, newY = y;
 
-    if (e.key === "ArrowUp") newY -= speed;
-    if (e.key === "ArrowDown") newY += speed;
-    if (e.key === "ArrowLeft") newX -= speed;
-    if (e.key === "ArrowRight") newX += speed;
+    if (dir === "up") newY -= speed;
+    if (dir === "down") newY += speed;
+    if (dir === "left") newX -= speed;
+    if (dir === "right") newX += speed;
 
     if (canMove(newX, newY)) {
         x = newX;
@@ -162,6 +203,20 @@ document.addEventListener("keydown", (e) => {
         player.style.top = y + "px";
         checkCollision();
     }
+}
+
+// BOTONES TÁCTILES
+document.getElementById("up").onclick = () => move("up");
+document.getElementById("down").onclick = () => move("down");
+document.getElementById("left").onclick = () => move("left");
+document.getElementById("right").onclick = () => move("right");
+
+// TECLADO (por si juega en PC)
+document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowUp") move("up");
+    if (e.key === "ArrowDown") move("down");
+    if (e.key === "ArrowLeft") move("left");
+    if (e.key === "ArrowRight") move("right");
 });
 
 setInterval(spawnFruit, 1000);
@@ -169,3 +224,4 @@ setInterval(spawnFruit, 1000);
 
 </body>
 </html>
+
